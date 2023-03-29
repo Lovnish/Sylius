@@ -13,5 +13,6 @@
             "originalPrice": 5000,
             "minimumPrice": 2000
         }
-    }
+    },
+    "enabled": true
 }

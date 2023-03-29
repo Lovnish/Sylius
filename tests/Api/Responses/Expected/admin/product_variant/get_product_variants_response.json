@@ -16,10 +16,12 @@
                     "channelCode": "WEB",
                     "price": 2000,
                     "originalPrice": null,
+                    "lowestPriceBeforeDiscount": null,
                     "minimumPrice": 0
                 }
             },
             "optionValues": [],
+            "enabled": true,
             "translations": {
                 "en_US": {
                     "@id": "\/api\/v2\/admin\/product-variant-translation\/@integer@",

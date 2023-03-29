@@ -26,6 +26,7 @@ use Sylius\Component\Core\Model\ProductImageInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\ProductTranslationInterface;
 use Sylius\Component\Core\Model\ProductVariantInterface;
+use Sylius\Component\Core\Model\TaxonInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Sylius\Component\Core\Uploader\ImageUploaderInterface;
 use Sylius\Component\Product\Factory\ProductFactoryInterface;
@@ -76,6 +77,21 @@ final class ProductContext implements Context
     public function storeHasAProductPricedAt($productName, int $price = 100, ChannelInterface $channel = null)
     {
         $product = $this->createProduct($productName, $price, $channel);
+
+        $this->saveProduct($product);
+    }
+
+    /**
+     * @Given /^the store(?:| also) has a product "([^"]+)" priced at ("[^"]+") belonging to the ("[^"]+" taxon)$/
+     */
+    public function storeHasAProductPricedAtBelongingToTheTaxon(
+        string $productName,
+        int $price = 100,
+        TaxonInterface $taxon,
+    ) {
+        $productTaxon = $this->createProductTaxon($taxon);
+        $product = $this->createProduct($productName, $price);
+        $product->addProductTaxon($taxon);
 
         $this->saveProduct($product);
     }
@@ -453,6 +469,39 @@ final class ProductContext implements Context
         foreach ($names as $name => $locale) {
             $this->addProductVariantTranslation($productVariant, $name, $locale);
         }
+
+        $this->objectManager->flush();
+    }
+
+    /**
+     * @Given /^(it|this product)(?:| also) has a variant named "([^"]+)" in ("[^"]+" locale)$/
+     */
+    public function itHasVariantNamedIn(ProductInterface $product, string $name, string $locale): void
+    {
+        $productVariant = $this->createProductVariant(
+            $product,
+            $name,
+            100,
+            StringInflector::nameToUppercaseCode($name),
+            $this->sharedStorage->get('channel'),
+        );
+
+        $this->addProductVariantTranslation($productVariant, $name, $locale);
+
+        $this->objectManager->flush();
+    }
+
+    /**
+     * @Given /^(this variant) has no translation in ("[^"]+" locale)$/
+     */
+    public function thisVariantHasNoTranslationIn(ProductVariantInterface $productVariant, string $locale): void
+    {
+        $translation = $productVariant->getTranslation($locale);
+        if ($translation->getLocale() !== $locale) {
+            return;
+        }
+
+        $productVariant->removeTranslation($translation);
 
         $this->objectManager->flush();
     }
